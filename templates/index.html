@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой TODO-лист на Docker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+        form.add-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        form.add-form input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        form.add-form input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        form.add-form button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        form.add-form button:hover { background: #5568d3; }
+        .tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .task {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+        .task:hover { transform: translateX(5px); }
+        .task.done {
+            opacity: 0.6;
+            border-left-color: #28a745;
+        }
+        .task.done .task-title { text-decoration: line-through; color: #999; }
+        .task-info { flex: 1; }
+        .task-title { font-size: 16px; color: #333; font-weight: 500; }
+        .task-date { font-size: 12px; color: #999; margin-top: 4px; }
+        .task-actions { display: flex; gap: 6px; }
+        .task-actions button {
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+        .task-actions button:hover { opacity: 0.8; }
+        .btn-toggle { background: #28a745; color: white; }
+        .btn-delete { background: #dc3545; color: white; }
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        .counter {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Мой TODO-лист на Docker</h1>
+
+        <form method="POST" class="add-form">
+            <input type="text" name="title" placeholder="Что нужно сделать?" required>
+            <button type="submit">Добавить</button>
+        </form>
+
+        {% if tasks %}
+            <div class="counter">
+                Задач: {{ tasks|length }} | Выполнено: {{ tasks|selectattr('done')|list|length }}
+            </div>
+            <div class="tasks">
+                {% for task in tasks %}
+                    <div class="task {% if task.done %}done{% endif %}">
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-date">Создано: {{ task.created_at }}</div>
+                        </div>
+                        <div class="task-actions">
+                            <form method="POST" action="/toggle/{{ task.id }}" style="display:inline">
+                                <button type="submit" class="btn-toggle">
+                                    {% if task.done %}↩️{% else %}✅{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="/delete/{{ task.id }}" style="display:inline">
+                                <button type="submit" class="btn-delete">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">Задач пока нет. Добавьте первую!</div>
+        {% endif %}
+
+        <div class="footer">Данные сохраняются в Docker-томе</div>
+    </div>
+</body>
+</html>
